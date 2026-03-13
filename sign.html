@@ -132,7 +132,7 @@
 
         async function updateData() {
             try {
-                const res = await fetch(GAS_URL + "?_=" + new Date().getTime());
+                const res = await fetch(GAS_URL + "&_=" + new Date().getTime());
                 const data = await res.json();
                 if (data && data.time !== undefined) document.getElementById('T').innerText = data.time;
             } catch (e) { console.error(e); }
