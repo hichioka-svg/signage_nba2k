@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>動画・画像・待ち時間ループサイネージ</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        .fullscreen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1s;
+        }
+        /* 待ち時間画面 */
+        #wait-screen { color: #fff; z-index: 10; opacity: 1; }
+        .label { font-size: 5vw; color: #fff; text-align: center; line-height: 1.2; }
+        .sub-label { font-size: 7vw; color: #fff; font-weight: bold; display: block; margin-top: 10px; }
+        .time-wrap { font-size: 35vw; color: #FF3B30; font-weight: bold; line-height: 1; }
+        .unit { font-size: 10vw; }
+
+        /* 動画画面 */
+        #video-screen { z-index: 5; opacity: 0; background: #000; }
+
+        /* 画像画面 */
+        #image-screen { z-index: 5; opacity: 0; background: #000; width: 100%; height: 100%; }
+        #image-screen img { 
+            width: 100vw;   /* 画面の横幅いっぱいに広げる */
+            height: 100vh;  /* 画面の縦幅いっぱいに広げる */
+            object-fit: contain; /* アスペクト比を維持しながら最大サイズにする（はみ出さない） */
+            /* もし上下左右にわずかな隙間も許さず、完全に埋め尽くしたい場合は 
+               object-fit: cover; に変更してください */
+        }
+
+        .hidden { opacity: 0 !important; visibility: hidden; }
+        .visible { opacity: 1 !important; visibility: visible; }
+    </style>
+</head>
+<body>
+
+    <div id="wait-screen" class="fullscreen">
+        <div class="label">カードジェネレーター<br><span class="sub-label">只今の待ち時間</span></div>
+        <div class="time-wrap"><span id="T">--</span><span class="unit">分</span></div>
+    </div>
+
+    <div id="video-screen" class="fullscreen">
+        <div id="player"></div>
+    </div>
+
+    <div id="image-screen" class="fullscreen">
+        <img id="schedule-img" src="" alt="Schedule">
+    </div>
+
+    <script>
+        /* --- 設定値 --- */
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwRNAi1cWnbr4B6zqd3jaP0b97BLqjqFKQWNMC9Y1oWZLbE3iS5lloJ4QOD8FCPlICg/exec";
+        const WAIT_SHOW_SEC = 30;    // 待ち時間の表示秒数
+        const IMAGE_SHOW_SEC = 30;   // 画像（スケジュール）の表示秒数
+
+        // ループさせるコンテンツのリスト（type: 'video' か 'image' で指定）
+        const CONTENTS_LOOP = [
+            { type: 'video', id: '-z3QwNxxLWQ' },  // 動画1
+            { type: 'image', url: 'schedule.jpg' }, // 画像1
+            { type: 'video', id: 'ec0js-wYNIk' },  // 動画2
+            { type: 'image', url: 'schedule.jpg' }  // 画像2
+        ];
+
+        /* --- プログラム本体 --- */
+        let player;
+        let currentIndex = 0;
+        const waitScreen = document.getElementById('wait-screen');
+        const videoScreen = document.getElementById('video-screen');
+        const imageScreen = document.getElementById('image-screen');
+        const scheduleImg = document.getElementById('schedule-img');
+
+        // YouTube API
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%', width: '100%',
+                videoId: CONTENTS_LOOP[0].type === 'video' ? CONTENTS_LOOP[0].id : '',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0, 'mute': 1, 'origin': location.origin },
+                events: { 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                nextStep();
+            }
+        }
+
+        function showWaitScreen() {
+            allHidden();
+            waitScreen.classList.add('visible');
+            updateData();
+            setTimeout(showContent, WAIT_SHOW_SEC * 1000);
+        }
+
+        function showContent() {
+            const current = CONTENTS_LOOP[currentIndex];
+            allHidden();
+
+            if (current.type === 'video') {
+                videoScreen.classList.add('visible');
+                player.cueVideoById(current.id);
+                setTimeout(() => {
+                    player.unMute();
+                    player.playVideo();
+                }, 500);
+            } else if (current.type === 'image') {
+                scheduleImg.src = current.url;
+                imageScreen.classList.add('visible');
+                // 画像の場合は指定秒数後に次へ
+                setTimeout(nextStep, IMAGE_SHOW_SEC * 1000);
+            }
+        }
+
+        function nextStep() {
+            if (player) player.pauseVideo();
+            currentIndex = (currentIndex + 1) % CONTENTS_LOOP.length;
+            showWaitScreen();
+        }
+
+        function allHidden() {
+            [waitScreen, videoScreen, imageScreen].forEach(el => {
+                el.classList.remove('visible');
+                el.classList.add('hidden');
+            });
+        }
+
+        async function updateData() {
+            try {
+                const res = await fetch(GAS_URL + "?_=" + new Date().getTime());
+                const data = await res.json();
+                if (data && data.time !== undefined) document.getElementById('T').innerText = data.time;
+            } catch (e) { console.error(e); }
+        }
+
+        window.onload = () => {
+            updateData();
+            setTimeout(showContent, WAIT_SHOW_SEC * 1000);
+        };
+    </script>
+</body>
+</html>
