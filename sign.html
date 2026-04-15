@@ -11,7 +11,12 @@
             transition: opacity 1s;
         }
         /* 待ち時間画面 */
-        #wait-screen { color: #fff; z-index: 10; opacity: 1; }
+        #wait-screen { color: #fff; z-index: 10; opacity: 1; 
+    background-image: url('bg-wait.jpg'); /* さっきアップロードしたファイル名 */
+    background-size: cover;               /* 画面いっぱいに広げる */
+    background-position: center;          /* 中央に合わせる */
+    background-repeat: no-repeat;
+        }
         .label { font-size: 5vw; color: #fff; text-align: center; line-height: 1.2; }
         .sub-label { font-size: 7vw; color: #fff; font-weight: bold; display: block; margin-top: 10px; }
         .time-wrap { font-size: 35vw; color: #FF3B30; font-weight: bold; line-height: 1; }
