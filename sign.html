@@ -136,24 +136,23 @@
         }
 
         async function updateData() {
-            try {
+            try{
                 const res = await fetch(GAS_URL + "&_=" + new Date().getTime());
                 const data = await res.json();
                 if (data && data.time !== undefined) {
                     const timeElement = document.getElementById('T');
                     const unitElement = document.querySelector('.unit');
                     
-                    // 1. 文字（GASから届いた内容）を表示
                     timeElement.innerText = data.time;
-
-                    // 2. 「分」という文字を消す（GAS側で「〜分」と付けて送るため）
                     unitElement.style.display = "none";
 
-                    // 3. 文字数に合わせて大きさを調整
-                    if (data.time.length > 3) {
-                        timeElement.style.fontSize = "15vw"; // 「開始前」や「終了」の時
+                    // 文字数に応じたサイズ調整をさらに強化
+                    if (data.time.length > 10) {
+                        timeElement.style.fontSize = "8vw";  // 長い文章（開始前・終了）はかなり小さく
+                    } else if (data.time.length > 3) {
+                        timeElement.style.fontSize = "12vw"; // 中くらい
                     } else {
-                        timeElement.style.fontSize = "35vw"; // 通常の数字の時
+                        timeElement.style.fontSize = "35vw"; // 数字（25分など）は大きく
                     }
                 }
             } catch (e) { console.error(e); }
