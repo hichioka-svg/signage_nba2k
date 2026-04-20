@@ -149,17 +149,20 @@
 
                     // --- ここからサイズ調整ロジック ---
                     if (data.time.indexOf('<br>') !== -1) {
-                        // 【パターンA】改行が含まれるメッセージ（開始前、終了、調整中など）
+                        // 改行が含まれるメッセージの場合
                         if (data.time.indexOf('システム調整中') !== -1) {
-                            timeElement.style.fontSize = "6vw";   // システム調整中はかなり小さく
+                            // ★ 888（システム調整中）のサイズをアップ
+                            timeElement.style.fontSize = "9vw"; 
+                            timeElement.style.lineHeight = "1.2";
                         } else {
-                            timeElement.style.fontSize = "8vw";   // 10:00より開始などはほどよく
+                            // ★ 0（10:00開始など）のサイズをアップ
+                            timeElement.style.fontSize = "10vw"; 
+                            timeElement.style.lineHeight = "1.2";
                         }
-                        timeElement.style.lineHeight = "1.4";
                         timeElement.style.display = "block";
                         timeElement.style.marginTop = "0";
                     } else {
-                        // 【パターンB】通常の数字表示（〇〇分）
+                        // 通常の数字表示（〇〇分）
                         timeElement.style.fontSize = "28vw"; 
                         timeElement.style.lineHeight = "1";
                         timeElement.style.display = "inline";
