@@ -56,7 +56,7 @@
 
     <script>
         /* --- 設定値 --- */
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwPn4wuF0cObtvcDrEP42g9SNvTMR5a_0HKsziIPvqQj5TenwgQQ6dFibJuqkey6Ew0/exec?action=get";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyttygn8g8PkSCU_3rLaDtmdy0teMBjYZOlJDNaT_AgwsRyA1Jxm4vz0S0kZRy8rugV/exec?action=get";
         const WAIT_SHOW_SEC = 30;    // 待ち時間の表示秒数
         const IMAGE_SHOW_SEC = 30;   // 画像（スケジュール）の表示秒数
 
@@ -143,15 +143,14 @@
                     const timeElement = document.getElementById('T');
                     const unitElement = document.querySelector('.unit');
                     
-                    timeElement.innerText = data.time;
+                    timeElement.innerHTML = data.time;
                     unitElement.style.display = "none";
 
                     // 文字数に応じたサイズ調整をさらに強化
-                    if (data.time.length > 10) {
-                        timeElement.style.fontSize = "8vw";  // 長い文章（開始前・終了）はかなり小さく
-                    } else if (data.time.length > 3) {
-                        timeElement.style.fontSize = "12vw"; // 中くらい
-                    } else {
+                    if (data.time.length > 5) {
+   　　　　　　　　　　　　 timeElement.style.fontSize = "12vw";  // 2行になるので、12vwくらいでしっかり見せられます
+   　　　　　　　　　　　　 timeElement.style.lineHeight = "1.2"; // 行間を少し詰めて整える
+　　　　　　　　　　　　} else {
                         timeElement.style.fontSize = "35vw"; // 数字（25分など）は大きく
                     }
                 }
