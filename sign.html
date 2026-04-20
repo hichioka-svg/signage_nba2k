@@ -143,15 +143,20 @@
                     const timeElement = document.getElementById('T');
                     const unitElement = document.querySelector('.unit');
                     
-                    timeElement.innerHTML = data.time;
+                    timeElement.innerHTML = data.time; 
                     unitElement.style.display = "none";
 
-                    // 文字数に応じたサイズ調整をさらに強化
-                    if (data.time.length > 5) {
-   　　　　　　　　　　　　 timeElement.style.fontSize = "12vw";  // 2行になるので、12vwくらいでしっかり見せられます
-   　　　　　　　　　　　　 timeElement.style.lineHeight = "1.2"; // 行間を少し詰めて整える
-　　　　　　　　　　　　} else {
-                        timeElement.style.fontSize = "30vw"; // 数字（25分など）は大きく
+                    // 2行メッセージ（<br>入り）の場合の調整
+                    if (data.time.indexOf('<br>') !== -1) {
+                        timeElement.style.fontSize = "7vw";   // ★サイズをさらに小さく (8vw → 7vw)
+                        timeElement.style.lineHeight = "1.1"; // ★行間を極限まで詰める (1.3 → 1.1)
+                        timeElement.style.display = "block";  // 表示を整える
+                        timeElement.style.marginTop = "0";    // 上の余白を消す
+                    } else {
+                        // 通常の数字（〇分）の場合
+                        timeElement.style.fontSize = "35vw"; 
+                        timeElement.style.lineHeight = "1";
+                        timeElement.style.display = "inline";
                     }
                 }
             } catch (e) { console.error(e); }
