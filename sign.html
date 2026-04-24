@@ -117,6 +117,16 @@
 
         function showContent() {
             const current = CONTENTS_LOOP[currentIndex];
+            const timeText = document.getElementById('T').innerText;
+
+            // ★追加：もし画面が「終了しました」という文字を含んでいたら、動画に行かずに止まる
+            if (timeText.indexOf("終了しました") !== -1) {
+                console.log("受付終了のためループを停止します");
+                // 次のチェック（10秒後）まで何もしない
+                setTimeout(showContent, WAIT_SHOW_SEC * 1000);
+                return; 
+            }
+
             allHidden();
 
             if (current.type === 'video') {
@@ -129,7 +139,6 @@
             } else if (current.type === 'image') {
                 scheduleImg.src = current.url;
                 imageScreen.classList.add('visible');
-                // 画像の場合は指定秒数後に次へ
                 setTimeout(nextStep, IMAGE_SHOW_SEC * 1000);
             }
         }
