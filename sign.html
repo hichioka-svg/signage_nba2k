@@ -115,7 +115,10 @@
             setTimeout(showContent, WAIT_SHOW_SEC * 1000);
         }
 
-        function showContent() {
+        async function showContent() {
+            // --- ここが重要：10秒ごとに最新データをGASに読みに行く ---
+            await updateData();
+            
             const current = CONTENTS_LOOP[currentIndex];
             const timeText = document.getElementById('T').innerText;
 
