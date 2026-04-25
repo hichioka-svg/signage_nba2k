@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="300">
     <title>動画・画像・待ち時間ループサイネージ</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
@@ -12,10 +13,10 @@
         }
         /* 待ち時間画面 */
         #wait-screen { color: #fff; z-index: 10; opacity: 1; 
-    background-image: url('bg-wait.jpg'); /* さっきアップロードしたファイル名 */
-    background-size: cover;               /* 画面いっぱいに広げる */
-    background-position: center;          /* 中央に合わせる */
-    background-repeat: no-repeat;
+            background-image: url('bg-wait.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         .label { font-size: 5vw; color: #fff; text-align: center; line-height: 1.2; margin-bottom: -20px; }
         .sub-label { font-size: 7vw; color: #fff; font-weight: bold; display: block; margin-top: 10px; }
@@ -28,11 +29,8 @@
         /* 画像画面 */
         #image-screen { z-index: 5; opacity: 0; background: #000; width: 100%; height: 100%; }
         #image-screen img { 
-            width: 100vw;   /* 画面の横幅いっぱいに広げる */
-            height: 100vh;  /* 画面の縦幅いっぱいに広げる */
-            object-fit: contain; /* アスペクト比を維持しながら最大サイズにする（はみ出さない） */
-            /* もし上下左右にわずかな隙間も許さず、完全に埋め尽くしたい場合は 
-               object-fit: cover; に変更してください */
+            width: 100vw; height: 100vh;
+            object-fit: contain;
         }
 
         .hidden { opacity: 0 !important; visibility: hidden; }
@@ -58,14 +56,10 @@
         /* --- 設定値 --- */
         const GAS_URL = "https://script.google.com/macros/s/AKfycbz-xuPmPCE7HrcJRIm4x6rZrBW8mtuTO9D4-TcaQYaWZQva2ZSAu3LXfkxPfI5tXHZ9/exec?action=get";
         const WAIT_SHOW_SEC = 10;    // 待ち時間の表示秒数
-        const IMAGE_SHOW_SEC = 30;   // 画像（スケジュール）の表示秒数
+        const IMAGE_SHOW_SEC = 30;   // 画像の表示秒数
 
-        // ループさせるコンテンツのリスト（type: 'video' か 'image' で指定）
         const CONTENTS_LOOP = [
-            { type: 'video', id: 'W3k5CtB5WyQ' },  // 動画1
-           // { type: 'image', url: 'schedule_schedule0424.png' }, // 画像1
-           // { type: 'video', id: 'ec0js-wYNIk' },  // 動画2
-           // { type: 'image', url: 'schedule_schedule0424.png' }  // 画像2
+            { type: 'video', id: 'W3k5CtB5WyQ' }
         ];
 
         /* --- プログラム本体 --- */
@@ -76,7 +70,6 @@
         const imageScreen = document.getElementById('image-screen');
         const scheduleImg = document.getElementById('schedule-img');
 
-        // YouTube API
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         document.head.appendChild(tag);
@@ -91,17 +84,13 @@
         }
 
         function onPlayerStateChange(event) {
-            // 1. 動画が最後まで正常に再生された場合
             if (event.data === YT.PlayerState.ENDED) {
                 nextStep();
             }
-            
-            // 2. 動画が途中で「停止」してしまった場合の対策
             else if (event.data === YT.PlayerState.PAUSED) {
-                // 5秒間だけ様子を見て、それでも動かなければ強制的に次（待ち時間画面）へ送る
                 setTimeout(() => {
                     if (player.getPlayerState() === YT.PlayerState.PAUSED) {
-                        console.log("動画の停止を検知したため、ループを復帰させます");
+                        console.log("停止を検知、復帰させます");
                         nextStep(); 
                     }
                 }, 5000);
@@ -111,20 +100,18 @@
         function showWaitScreen() {
             allHidden();
             waitScreen.classList.add('visible');
+            // updateDataはshowContent内で実行されるためスリム化
             setTimeout(showContent, WAIT_SHOW_SEC * 1000);
         }
 
         async function showContent() {
-            // --- ここが重要：10秒ごとに最新データをGASに読みに行く ---
             await updateData();
             
             const current = CONTENTS_LOOP[currentIndex];
             const timeText = document.getElementById('T').innerText;
 
-            // ★追加：もし画面が「終了しました」という文字を含んでいたら、動画に行かずに止まる
             if (timeText.indexOf("終了しました") !== -1) {
-                console.log("受付終了のためループを停止します");
-                // 次のチェック（10秒後）まで何もしない
+                console.log("受付終了待機中...");
                 setTimeout(showContent, WAIT_SHOW_SEC * 1000);
                 return; 
             }
@@ -134,10 +121,16 @@
             if (current.type === 'video') {
                 videoScreen.classList.add('visible');
                 player.cueVideoById(current.id);
-                setTimeout(() => {
-                    player.unMute();
-                    player.playVideo();
-                }, 500);
+                
+                // しつこく再生命令を送る（0.5秒, 1秒, 2秒後）
+                [500, 1000, 2000].forEach(delay => {
+                    setTimeout(() => {
+                        if (player && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                            player.unMute();
+                            player.playVideo();
+                        }
+                    }, delay);
+                });
             } else if (current.type === 'image') {
                 scheduleImg.src = current.url;
                 imageScreen.classList.add('visible');
@@ -166,26 +159,20 @@
                     const timeElement = document.getElementById('T');
                     const unitElement = document.querySelector('.unit');
                     
-                    // 「分」を小さく表示する処理
                     timeElement.innerHTML = data.time.replace("分", "<span style='font-size: 0.5em; margin-left: 10px;'>分</span>"); 
                     unitElement.style.display = "none";
 
-                    // --- ここからサイズ調整ロジック ---
                     if (data.time.indexOf('<br>') !== -1) {
-                        // 改行が含まれるメッセージの場合
                         if (data.time.indexOf('システム調整中') !== -1) {
-                            // ★ 888（システム調整中）のサイズをアップ
                             timeElement.style.fontSize = "9vw"; 
                             timeElement.style.lineHeight = "1.2";
                         } else {
-                            // ★ 0（10:00開始など）のサイズをアップ
                             timeElement.style.fontSize = "10vw"; 
                             timeElement.style.lineHeight = "1.2";
                         }
                         timeElement.style.display = "block";
                         timeElement.style.marginTop = "0";
                     } else {
-                        // 通常の数字表示（〇〇分）
                         timeElement.style.fontSize = "28vw"; 
                         timeElement.style.lineHeight = "1";
                         timeElement.style.display = "inline";
@@ -194,17 +181,15 @@
             } catch (e) { console.error(e); }
         }
 
-       window.onload = () => {
+        window.onload = () => {
             updateData();
             setTimeout(showContent, WAIT_SHOW_SEC * 1000);
         };
 
-        // --- ここから追加 ---
-        // 3時間ごとにページを自動リフレッシュして、YouTubeの動作を安定させます
+        // 3時間ごとにページ全体を掃除する
         setInterval(() => {
             location.reload();
-        }, 3 * 60 * 60 * 1000); 
-        // --- ここまで追加 ---
+        }, 10800000); 
     </script>
 </body>
 </html>
