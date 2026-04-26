@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="300">
+   
     <title>動画・画像・待ち時間ループサイネージ</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
@@ -138,12 +138,26 @@
             }
         }
 
+        // ループ回数を数えるためのカウンター
+        let loopCount = 0;
+
         function nextStep() {
             if (player) player.pauseVideo();
+            
+            // ループ回数を1増やす
+            loopCount++;
+
+            // ★重要：3ループごとにページをまるごとリロードしてリフレッシュする
+            // 数字を変えれば「5ループごと」なども可能です
+            if (loopCount >= 3) {
+                console.log("3ループ完了。安定稼働のためページをリフレッシュします。");
+                location.reload(); 
+                return; // リロードするので、これ以降の処理は不要
+            }
+
             currentIndex = (currentIndex + 1) % CONTENTS_LOOP.length;
             showWaitScreen();
         }
-
         function allHidden() {
             [waitScreen, videoScreen, imageScreen].forEach(el => {
                 el.classList.remove('visible');
